@@ -27,6 +27,10 @@ namespace Messaging
             where TMessage : IMessage;
         TMessage Get<TMessage>()
             where TMessage : IMessage;
+
+        bool HasMessage<TMessage>()
+            where TMessage : IMessage;
+
         void Remove<TMessage>()
             where TMessage : IMessage;
         void Clear();
@@ -52,11 +56,10 @@ namespace Messaging
             return message;
         }
 
-        public TMessage Peek<TMessage>() 
-            where TMessage : IMessage
-        {
-            return messages.TryGetValue(typeof(TMessage), out var message) ? (TMessage)message : default;
-        }
+        public TMessage Peek<TMessage>()
+            where TMessage : IMessage => (TMessage)messages[typeof(TMessage)];
+
+        public bool HasMessage<TMessage>() where TMessage : IMessage => messages.ContainsKey(typeof(TMessage));
 
         public void Remove<TMessage>()
             where TMessage : IMessage => messages.Remove(typeof(TMessage));
@@ -114,9 +117,11 @@ namespace Messaging
         private TMessage DoSend<TMessage>()
             where TMessage : IMessage, new()
         {
-            var message = Peek<TMessage>();
+            TMessage message;
 
-            if (message.Equals(default))
+            if (HasMessage<TMessage>())
+                message = Peek<TMessage>();
+            else
             {
                 message = new TMessage();
                 messages[typeof(TMessage)] = message;
