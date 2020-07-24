@@ -38,6 +38,10 @@ namespace Messaging
 
         private readonly Dictionary<Type, IMessage> messages;
 
+        internal MessageBox()
+        {
+            messages = new Dictionary<Type, IMessage>();
+        }
 
         public TMessage Get<TMessage>()
             where TMessage : IMessage
@@ -70,6 +74,7 @@ namespace Messaging
         {
             var message = DoSend<TMessage>();
             message.Data.Add(data);
+            OnReceived?.Invoke(message);
         }
 
         public void SendWithCallback<TMessage>(Action callback)
@@ -77,6 +82,7 @@ namespace Messaging
         {
             var message = DoSend<TMessage>();
             message.OnAccepted += callback;
+            OnReceived?.Invoke(message);
         }
 
         public void SendWithCallback<TMessage, TCallback>(Action<TCallback> callback) 
@@ -84,6 +90,7 @@ namespace Messaging
         {
             var message = DoSend<TMessage>();
             message.OnAccepted += callback;
+            OnReceived?.Invoke(message);
         }
 
         public void SendRich<TMessage, TData>(TData data, Action callback) 
@@ -92,6 +99,7 @@ namespace Messaging
             var message = DoSend<TMessage>();
             message.Data.Add(data);
             message.OnAccepted += callback;
+            OnReceived?.Invoke(message);
         }
 
         public void SendRich<TMessage, TData, TCallback>(TData data, Action<TCallback> callback)
@@ -100,6 +108,7 @@ namespace Messaging
             var message = DoSend<TMessage>();
             message.Data.Add(data);
             message.OnAccepted += callback;
+            OnReceived?.Invoke(message);
         }
 
         private TMessage DoSend<TMessage>()
