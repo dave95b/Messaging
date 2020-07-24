@@ -5,14 +5,14 @@ using System;
 
 namespace Messaging
 {
-    public interface IMessage
+    public interface IMessage : IEquatable<IMessage>
     {
-        int Count { get; }
+        int Count { get; set; }
     }
 
-    public interface IMessage<out T> : IMessage
+    public interface IDataMessage<T> : IMessage
     {
-        IReadOnlyList<T> Data { get; }
+        List<T> Data { get; }
     }
 
     public interface ICallbackMessage : IMessage
@@ -27,6 +27,8 @@ namespace Messaging
 
     internal class Message : IMessage
     {
-        public int Count { get; private set; }
+        public int Count { get; set; }
+
+        public bool Equals(IMessage other) => this == other;
     }
 }

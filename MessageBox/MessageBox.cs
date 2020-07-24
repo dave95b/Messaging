@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using System.Collections;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Messaging
@@ -10,15 +8,15 @@ namespace Messaging
         void SendSimple<TMessage>()
             where TMessage : IMessage, new();
         void SendWithData<TMessage, TData>(TData data)
-            where TMessage : IMessage<TData>, new();
+            where TMessage : IDataMessage<TData>, new();
         void SendWithCallback<TMessage>(Action callback)
             where TMessage : ICallbackMessage, new();
-        void SendWithCallback<TMessage, TCallback>(Action<TCallback> data)
+        void SendWithCallback<TMessage, TCallback>(Action<TCallback> callback)
             where TMessage : ICallbackMessage<TCallback>, new();
         void SendRich<TMessage, TData>(TData data, Action callback)
-            where TMessage : IMessage<TData>, ICallbackMessage, new();
+            where TMessage : IDataMessage<TData>, ICallbackMessage, new();
         void SendRich<TMessage, TData, TCallback>(TData data, Action<TCallback> callback)
-            where TMessage : IMessage<TData>, ICallbackMessage<TCallback>, new();
+            where TMessage : IDataMessage<TData>, ICallbackMessage<TCallback>, new();
     }
 
     public interface IReadableMessageBox : IMessageBox
@@ -29,6 +27,9 @@ namespace Messaging
             where TMessage : IMessage;
         TMessage Get<TMessage>()
             where TMessage : IMessage;
+        void Remove<TMessage>()
+            where TMessage : IMessage;
+        void Clear();
     }
 
     internal class MessageBox : IReadableMessageBox
@@ -38,44 +39,83 @@ namespace Messaging
         private readonly Dictionary<Type, IMessage> messages;
 
 
-        public TMessage Get<TMessage>() where TMessage : IMessage
+        public TMessage Get<TMessage>()
+            where TMessage : IMessage
         {
-            throw new NotImplementedException();
+            var message = Peek<TMessage>();
+            Remove<TMessage>();
+
+            return message;
         }
 
-        public TMessage Peek<TMessage>() where TMessage : IMessage
+        public TMessage Peek<TMessage>() 
+            where TMessage : IMessage
         {
-            throw new NotImplementedException();
+            return messages.TryGetValue(typeof(TMessage), out var message) ? (TMessage)message : default;
         }
 
-        public void SendSimple<TMessage>() where TMessage : IMessage, new()
+        public void Remove<TMessage>()
+            where TMessage : IMessage => messages.Remove(typeof(TMessage));
+
+        public void Clear() => messages.Clear();
+
+        public void SendSimple<TMessage>()
+            where TMessage : IMessage, new()
         {
-            throw new NotImplementedException();
+            DoSend<TMessage>();
         }
 
-        public void SendWithData<TMessage, TData>(TData data) where TMessage : IMessage<TData>, new()
+        public void SendWithData<TMessage, TData>(TData data) 
+            where TMessage : IDataMessage<TData>, new()
         {
-            throw new NotImplementedException();
+            var message = DoSend<TMessage>();
+            message.Data.Add(data);
         }
 
-        public void SendWithCallback<TMessage>(Action callback) where TMessage : ICallbackMessage, new()
+        public void SendWithCallback<TMessage>(Action callback)
+            where TMessage : ICallbackMessage, new()
         {
-            throw new NotImplementedException();
+            var message = DoSend<TMessage>();
+            message.OnAccepted += callback;
         }
 
-        public void SendWithCallback<TMessage, TCallback>(Action<TCallback> data) where TMessage : ICallbackMessage<TCallback>, new()
+        public void SendWithCallback<TMessage, TCallback>(Action<TCallback> callback) 
+            where TMessage : ICallbackMessage<TCallback>, new()
         {
-            throw new NotImplementedException();
+            var message = DoSend<TMessage>();
+            message.OnAccepted += callback;
         }
 
-        public void SendRich<TMessage, TData>(TData data, Action callback) where TMessage : IMessage<TData>, ICallbackMessage, new()
+        public void SendRich<TMessage, TData>(TData data, Action callback) 
+            where TMessage : IDataMessage<TData>, ICallbackMessage, new()
         {
-            throw new NotImplementedException();
+            var message = DoSend<TMessage>();
+            message.Data.Add(data);
+            message.OnAccepted += callback;
         }
 
-        public void SendRich<TMessage, TData, TCallback>(TData data, Action<TCallback> callback) where TMessage : IMessage<TData>, ICallbackMessage<TCallback>, new()
+        public void SendRich<TMessage, TData, TCallback>(TData data, Action<TCallback> callback)
+            where TMessage : IDataMessage<TData>, ICallbackMessage<TCallback>, new()
         {
-            throw new NotImplementedException();
+            var message = DoSend<TMessage>();
+            message.Data.Add(data);
+            message.OnAccepted += callback;
+        }
+
+        private TMessage DoSend<TMessage>()
+            where TMessage : IMessage, new()
+        {
+            var message = Peek<TMessage>();
+
+            if (message.Equals(default))
+            {
+                message = new TMessage();
+                messages[typeof(TMessage)] = message;
+            }
+
+            message.Count++;
+
+            return message;
         }
     }
 }
