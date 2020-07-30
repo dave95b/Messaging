@@ -16,10 +16,14 @@ namespace Messaging
     public interface ICallbackMessage : IMessage
     {
         event Action OnAccepted;
+
+        void Dispatch();
     }
 
-    public interface ICallbackMessage<out T> : IMessage
+    public interface ICallbackMessage<T> : IMessage
     {
         event Action<T> OnAccepted;
+
+        void Dispatch(T callbackData);
     }
 }

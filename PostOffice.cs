@@ -7,6 +7,7 @@ namespace Messaging
     {
         void Register<TMessage>(IMessageBox box)
             where TMessage : IMessage;
+
         void Unregister<TMessage>(IMessageBox box)
             where TMessage : IMessage;
     }
@@ -21,13 +22,15 @@ namespace Messaging
         }
 
 
-        public void Register<TMessage>(IMessageBox box) where TMessage : IMessage
+        public void Register<TMessage>(IMessageBox box)
+            where TMessage : IMessage
         {
             var boxList = GetBoxes<TMessage>();
             boxList.Add(box);
         }
 
-        public void Unregister<TMessage>(IMessageBox box) where TMessage : IMessage
+        public void Unregister<TMessage>(IMessageBox box) 
+            where TMessage : IMessage
         {
             var boxList = GetBoxes<TMessage>();
             boxList.Remove(box);

@@ -18,20 +18,24 @@ namespace Messaging
     public class CallbackMessage : Message, ICallbackMessage
     {
         public event Action OnAccepted;
+
+        public void Dispatch() => OnAccepted?.Invoke();
     }
 
     public class CallbackMessage<TCallback> : Message, ICallbackMessage<TCallback>
     {
         public event Action<TCallback> OnAccepted;
+
+        public void Dispatch(TCallback callbackData) => OnAccepted?.Invoke(callbackData);
     }
 
-    public class RichMessage<TData> : DataMessage<TData>, IDataMessage<TData>, ICallbackMessage
+    public class RichMessage<TData> : CallbackMessage, IDataMessage<TData>
     {
-        public event Action OnAccepted;
+        public List<TData> Data { get; } = new List<TData>();
     }
 
-    public class RichMessage<TData, TCallback> : DataMessage<TData>, IDataMessage<TData>, ICallbackMessage<TCallback>
+    public class RichMessage<TData, TCallback> : CallbackMessage<TCallback>, IDataMessage<TData>
     {
-        public event Action<TCallback> OnAccepted;
+        public List<TData> Data { get; } = new List<TData>();
     }
 }
