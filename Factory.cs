@@ -7,4 +7,9 @@ namespace Messaging
     {
         public static IReadableMessageBox Create() => new MessageBox();
     }
+
+    public static class PostOfficeFactory
+    {
+        public static IPostOffice Create() => new PostOffice();
+    }
 }
